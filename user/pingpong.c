@@ -7,24 +7,31 @@ int main (int argc, char *argv[]) {
     pipe(p2c);
     pipe(c2p);
 
-    if (fork() == 0) {
+    int pid = fork();
+    if (pid == 0) {
         close(p2c[1]);
         close(c2p[0]);
 
         char buf;
         read(p2c[0], &buf, 1);
-        printf("%d, receive ping\n", getpid());
+        printf("%d: received ping\n", getpid());
         write(c2p[1], "1", 1);
+        close(p2c[0]);
+        close(c2p[1]);
         exit(0);
-    } else {
+    } else if (pid > 0) {
         close(p2c[0]);
         close(c2p[1]);
 
         write(p2c[1], "!", 1);
         char buf;
         read(c2p[0], &buf, 1);
-        printf("%d: receive pong\n", getpid());
+        printf("%d: received pong\n", getpid());
+        close(p2c[1]);
+        close(c2p[0]);
         wait(0);
+    } else {
+        printf("for error\n");
     }
     exit(0);
 }
