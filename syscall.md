@@ -8,4 +8,5 @@
 5. 修改 kernel/proc.c 中的 fork 函数，时的子进程可以继承父进程的 `trace_mask`
 6. 修改 kernel/syscall.c 中的 syscall 函数，并新增一个 `sysall_names` 数组来通过中断号索引系统中断的名称，这里利用寄存器获取中断号，并将处理结果保存到寄存器中
 
-这里需要梳理一下系统调用的整个执行流程
+实际上这里还有两个文件需要注意 kernel/trampoline.S 和 kernel/trap.c 这两个文件中的函数，会对从 user space 中的 argument 做验证，kernel 的返回值同样
+
