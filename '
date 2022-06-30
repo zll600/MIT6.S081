@@ -127,8 +127,6 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
-  p->trace_mask = 0;
-
   return p;
 }
 
@@ -706,10 +704,10 @@ proc_num(void)
 
   for(p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
-    if(p->state != UNUSED) {
+    if(p->state == UNUSED) {
         ++nums;
     }
     release(&p->lock);
   }
-  return nums;
+  return 0;
 }
