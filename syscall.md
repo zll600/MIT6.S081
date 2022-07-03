@@ -1,3 +1,5 @@
+实验手册在 [这里](https://pdos.csail.mit.edu/6.828/2020/labs/syscall.html)
+
 ### System call tracing
 
 1. user/trace.c 已经存在在，先在 Makefile 中添加对应的条目
