@@ -51,6 +51,9 @@ exec(char *path, char **argv)
     uint64 sz1;
     if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz)) == 0)
       goto bad;
+    // prevent out of range
+    if(sz1 >= PLIC)
+      goto bad;
     sz = sz1;
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
@@ -74,6 +77,10 @@ exec(char *path, char **argv)
   uvmclear(pagetable, sz-2*PGSIZE);
   sp = sz;
   stackbase = sp - PGSIZE;
+
+  // unmap old map, remap kernel page table
+  uvmunmap(p->kpgtbl, 0, PGROUNDUP(oldsz)/PGSIZE, 0);
+  u2kvmcopy(pagetable, p->kpgtbl, 0, sz);
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {

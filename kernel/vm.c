@@ -379,6 +379,7 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 int
 copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 {
+  /*
   uint64 n, va0, pa0;
 
   while(len > 0){
@@ -396,6 +397,8 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
     srcva = va0 + PGSIZE;
   }
   return 0;
+  */
+  return copyin_new(pagetable, dst, srcva, len);
 }
 
 // Copy a null-terminated string from user to kernel.
@@ -405,6 +408,7 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 int
 copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 {
+  /*
   uint64 n, va0, pa0;
   int got_null = 0;
 
@@ -439,6 +443,8 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+  */
+  return copyinstr_new(pagetable, dst, srcva, max);
 }
 
 void
@@ -491,8 +497,9 @@ ukvmcreate()
   // virtio mmio disk interface
   ukvmmap(kpgtbl, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
 
+  // this map only required by global kernel page table
   // CLINT
-  ukvmmap(kpgtbl, CLINT, CLINT, 0x10000, PTE_R | PTE_W);
+  // ukvmmap(kpgtbl, CLINT, CLINT, 0x10000, PTE_R | PTE_W);
 
   // PLIC
   ukvmmap(kpgtbl, PLIC, PLIC, 0x400000, PTE_R | PTE_W);
@@ -546,4 +553,62 @@ ukvmpa(pagetable_t pageable, uint64 va)
     panic("ukvmpa");
   pa = PTE2PA(*pte);
   return pa+off;
+}
+
+// Mapping user page table to kernel table
+int
+u2kvmcopy(pagetable_t src, pagetable_t dst, uint64 va, uint64 size)
+{
+  uint64 a, last;
+  pte_t *pte;
+  uint64 pa;
+  uint flags;
+
+  a = PGROUNDDOWN(va);
+  last = PGROUNDDOWN(va + size - 1);
+  for(;;){
+    if((pte = walk(src, a, 0)) == 0)
+      panic("u2kvmcopy: pte should exist");
+    if((*pte & PTE_V) == 0)
+      panic("u2kvmcopy: page not present");
+    pa = PTE2PA(*pte);
+    printf("pte %p pa %p\n", pte, pa);
+    if(a >= last)
+      break;
+    
+    flags = PTE_FLAGS(*pte) & ~PTE_U;
+    if (mappages(dst, a, PGSIZE, pa, flags) != 0)
+        goto err;
+
+    a += PGSIZE;
+  }
+
+  vmprint(src);
+  printf(" ===> ");
+  vmprint(dst);
+  printf("\n");
+
+  return 0;
+
+err:
+  uvmunmap(dst, PGROUNDUP(va), (a - PGROUNDUP(va)) / PGSIZE, 0);
+  return -1;
+}
+
+// Deallocate kernel pages to bring the process size from oldsz to
+// newsz.  oldsz and newsz need not be page-aligned, nor does newsz
+// need to be less than oldsz.  oldsz can be larger than the actual
+// process size.  Returns the new process size.
+uint64
+kvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
+{
+  if(newsz >= oldsz)
+    return oldsz;
+
+  if(PGROUNDUP(newsz) < PGROUNDUP(oldsz)){
+    int npages = (PGROUNDUP(oldsz) - PGROUNDUP(newsz)) / PGSIZE;
+    uvmunmap(pagetable, PGROUNDUP(newsz), npages, 0);
+  }
+
+  return newsz;
 }

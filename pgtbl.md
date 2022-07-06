@@ -22,3 +22,11 @@ xv6 中的实现是，每个用户态进程都有一个 pagetable，但是内核
 - 在 scheduler() 函数中 参考 kvminithart 添加 设置 内核态进程 satp 寄存器的代码，在切换内核态进程的 satp 寄存器页表，
 - 在 freeproc 中释放 内核页表，这里注意只需要释放内核页表，而不用释放物理页，首先释放内核页表的内核栈，不过需要首先将内核栈的虚拟地址转化为物理地址才可以，这里利用 kvmpa 重新编写一转化的函数，然后得到内核栈对应的物理地址，之后通过 kfree 释放，接着根据 freewalk 函数，释放内核页表，但是不可以释放内核使用的内存页，只是删除页表中的映射关系而已
 - 这里因为需要还需要对 `virtio_disk.c` 中使用 kvmpa 处进行修改，改为使用 ukvmpa 来代替
+
+### Simplify copyin/copyinstr
+
+这个任务主要做的就是将用户态 page table 中的映射添加到 kernel page table 中，使得 copyint 可以直接解引用用户态的指针
+
+- 增加 u2kvmcopy 函数，将 user page table 中的映射添加到 kernel page table 中，具体的做法就是 利用 user page table 找到对应的 physical address，然后在 kernel page table 中增加新的 映射，可以参考 uvmcopy 函数，做适当修改就可以了
+- 接下里利用这些工具函数，修改fork, exe, sbrk 和 userinit 中操作 user page table 中的地方，在操作 user page table 的同时，同时操作 kernel page table, 这里还需要增加一个工具函数 kvmdealloc 用来处理 kernel memory page 的缩容
+- 修改 copyin 和 copyinstr 的实现
