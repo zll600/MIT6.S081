@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net" modified="2022-07-06T02:28:04.802Z" agent="5.0 (Windows)" etag="5W7vdQADhHhPwayY9FnX" version="20.0.4" type="github">
+  <diagram id="UmriBcZLhUaE-TarzjRz" name="Page-1">
+    <mxGraphModel dx="1422" dy="710" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oeFwYj1UMM1Ra99ZpsJv-1" target="oeFwYj1UMM1Ra99ZpsJv-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-1" value="Add kernel page table fileld for per kernel process" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oeFwYj1UMM1Ra99ZpsJv-2" target="oeFwYj1UMM1Ra99ZpsJv-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-2" value="Init kernel page table" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="160" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oeFwYj1UMM1Ra99ZpsJv-4" target="oeFwYj1UMM1Ra99ZpsJv-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-4" value="Map processor&#39;s kernel stack" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="280" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oeFwYj1UMM1Ra99ZpsJv-6" target="oeFwYj1UMM1Ra99ZpsJv-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-6" value="Load the processer&#39;s kernel page table into the core&#39;s satp register when run scheduler function" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="400" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oeFwYj1UMM1Ra99ZpsJv-8" target="oeFwYj1UMM1Ra99ZpsJv-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-8" value="&lt;tt&gt;Modify scheduler()&lt;/tt&gt; function should use &lt;tt&gt;kernel pagetable&lt;/tt&gt; when&lt;br/&gt;  no process is running" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="520" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oeFwYj1UMM1Ra99ZpsJv-10" target="oeFwYj1UMM1Ra99ZpsJv-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-10" value="Translate vm to pa, then call kfree() to free kernel stack" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="640" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="oeFwYj1UMM1Ra99ZpsJv-12" value="Free page table without freeing memory page" style="whiteSpace=wrap;html=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="760" width="160" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
