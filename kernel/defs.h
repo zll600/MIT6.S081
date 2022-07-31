@@ -181,10 +181,10 @@ int             copyinstr(pagetable_t, char *, uint64, uint64);
 void            vmprint(pagetable_t);
 pagetable_t     ukvmcreate();
 void            ukvmmap();
-void            kvm_freewalk(pagetable_t);
+void            ukvm_freewalk(pagetable_t);
 uint64          ukvmpa(pagetable_t, uint64);
 int             u2kvmcopy(pagetable_t, pagetable_t, uint64, uint64);
-uint64          kvmdealloc(pagetable_t, uint64, uint64);
+uint64          ukvmdealloc(pagetable_t, uint64, uint64);
 int             copyin_new(pagetable_t, char *, uint64, uint64);
 int             copyinstr_new(pagetable_t, char *, uint64, uint64);
  

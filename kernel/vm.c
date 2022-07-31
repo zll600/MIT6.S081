@@ -379,7 +379,6 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 int
 copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 {
-  /*
   uint64 n, va0, pa0;
 
   while(len > 0){
@@ -397,8 +396,7 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
     srcva = va0 + PGSIZE;
   }
   return 0;
-  */
-  return copyin_new(pagetable, dst, srcva, len);
+  // return copyin_new(pagetable, dst, srcva, len);
 }
 
 // Copy a null-terminated string from user to kernel.
@@ -408,7 +406,6 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 int
 copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 {
-  /*
   uint64 n, va0, pa0;
   int got_null = 0;
 
@@ -443,7 +440,6 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
-  */
   return copyinstr_new(pagetable, dst, srcva, max);
 }
 
@@ -517,18 +513,16 @@ ukvmcreate()
   return kpgtbl;
 }
 
-// Recursively free page-table pages.
-// All leaf mappings must already have been removed.
 void
-kvm_freewalk(pagetable_t pagetable)
+ukvm_freewalk(pagetable_t pagetable)
 {
   // there are 2^9 = 512 PTEs in a page table.
   for(int i = 0; i < 512; i++){
     pte_t pte = pagetable[i];
+    uint64 child = PTE2PA(pte);
     if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
       // this PTE points to a lower-level page table.
-      uint64 child = PTE2PA(pte);
-      kvm_freewalk((pagetable_t)child);
+      ukvm_freewalk((pagetable_t)child);
       pagetable[i] = 0;
     }
   }
@@ -559,39 +553,27 @@ ukvmpa(pagetable_t pageable, uint64 va)
 int
 u2kvmcopy(pagetable_t src, pagetable_t dst, uint64 va, uint64 size)
 {
-  uint64 a, last;
+  // vmprint(src);
   pte_t *pte;
-  uint64 pa;
+  uint64 pa, i;
   uint flags;
 
-  a = PGROUNDDOWN(va);
-  last = PGROUNDDOWN(va + size - 1);
-  for(;;){
-    if((pte = walk(src, a, 0)) == 0)
+  for(i = PGROUNDUP(va); i < va + size; i += PGSIZE){
+    if((pte = walk(src, i, 0)) == 0)
       panic("u2kvmcopy: pte should exist");
     if((*pte & PTE_V) == 0)
       panic("u2kvmcopy: page not present");
     pa = PTE2PA(*pte);
-    printf("pte %p pa %p\n", pte, pa);
-    if(a >= last)
-      break;
-    
     flags = PTE_FLAGS(*pte) & ~PTE_U;
-    if (mappages(dst, a, PGSIZE, pa, flags) != 0)
-        goto err;
-
-    a += PGSIZE;
+    if(mappages(dst, i, PGSIZE, pa, flags) != 0){
+      goto err;
+    }
   }
-
-  vmprint(src);
-  printf(" ===> ");
-  vmprint(dst);
-  printf("\n");
 
   return 0;
 
 err:
-  uvmunmap(dst, PGROUNDUP(va), (a - PGROUNDUP(va)) / PGSIZE, 0);
+  uvmunmap(dst, PGROUNDUP(va), (i - PGROUNDUP(va)) / PGSIZE, 0);
   return -1;
 }
 
@@ -600,7 +582,7 @@ err:
 // need to be less than oldsz.  oldsz can be larger than the actual
 // process size.  Returns the new process size.
 uint64
-kvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
+ukvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
 {
   if(newsz >= oldsz)
     return oldsz;

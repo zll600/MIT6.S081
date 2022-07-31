@@ -78,10 +78,6 @@ exec(char *path, char **argv)
   sp = sz;
   stackbase = sp - PGSIZE;
 
-  // unmap old map, remap kernel page table
-  uvmunmap(p->kpgtbl, 0, PGROUNDUP(oldsz)/PGSIZE, 0);
-  u2kvmcopy(pagetable, p->kpgtbl, 0, sz);
-
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
@@ -114,6 +110,10 @@ exec(char *path, char **argv)
     if(*s == '/')
       last = s+1;
   safestrcpy(p->name, last, sizeof(p->name));
+
+  // unmap old map, remap kernel page table
+  uvmunmap(p->kpgtbl, 0, PGROUNDUP(oldsz)/PGSIZE, 0);
+  u2kvmcopy(pagetable, p->kpgtbl, 0, sz);
     
   // Commit to the user image.
   oldpagetable = p->pagetable;

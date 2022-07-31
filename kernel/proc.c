@@ -125,11 +125,13 @@ found:
 
   // An kernel page table
   p->kpgtbl = ukvmcreate();
+  /*
   if(p->kpgtbl == 0){
     freeproc(p);
     release(&p->lock);
     return 0;
   }
+  */
 
   // Allocate a page for the process's kernel stack.
   // Map it high in memory, followed by an invalid
@@ -137,7 +139,8 @@ found:
   char *pa = kalloc();
   if(pa == 0)
     panic("kalloc");
-  uint64 va = KSTACK((int) (p - proc));
+  // uint64 va = KSTACK((int) (p - proc));
+  uint64 va = KSTACK((int) (0));
   ukvmmap(p->kpgtbl, va, (uint64)pa, PGSIZE, PTE_R | PTE_W);
   p->kstack = va;
  
@@ -178,7 +181,7 @@ freeproc(struct proc *p)
   p->kstack = 0;
 
   if (p->kpgtbl) {
-    kvm_freewalk(p->kpgtbl);
+    ukvm_freewalk(p->kpgtbl);
   } 
   p->kpgtbl = 0;
 }
@@ -275,17 +278,19 @@ growproc(int n)
 
   sz = p->sz;
   if(n > 0){
-    if((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
+    uint newsz;
+    if((newsz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
       return -1;
     }
 
     if(u2kvmcopy(p->pagetable, p->kpgtbl, sz, n) != 0) {
-       uvmdealloc(p->pagetable, sz, sz + n); 
+       uvmdealloc(p->pagetable, newsz, sz); 
+       return -1;
     }
   } else if(n < 0){
-    sz = uvmdealloc(p->pagetable, sz, sz + n);
+    uvmdealloc(p->pagetable, sz, sz + n);
 
-    sz = kvmdealloc(p->pagetable, sz, sz + n);
+    sz = ukvmdealloc(p->kpgtbl, sz, sz + n);
   }
   p->sz = sz;
   return 0;
