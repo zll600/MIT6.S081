@@ -1,11 +1,21 @@
-- Which registers contain arguments to functions? For example, which register holds 13 in main's call to printf? 
-- a1-7 a2
+- Which registers contain arguments to functions? For example, which register holds 13 in main's call to printf?
+- a0-7 a2
 
-- Where is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.) 
+这个直接看 lecture 中的表格就可以了，function arguments 就是
+
+- Where is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.)
 - nowhere, compiler optimization by inline function.
+
+找不到，可以看到 printf 的时候，都是直接把结果加载道 a1 寄存器中的，没有 call 指令的调用，被编译器优化了
 
 - At what address is the function printf located?
 - 0x000000000000630
+
+计算 printf 的地址，其实在 call.asm 中的后面注释有，0x630，当然也可以自己算，
+
+auipc ra, 0x0，是指将当前立即数向右移动12位，然后加上 pc 寄存器的值，赋给 ra 寄存器，由于立即数为 0，因此 ra 的值即为 pc 的值
+
+1536(ra) 是指 1536 加上 ra 寄存器的值，1536 转为16进制再加上0x30 即为 0x0000000000000630
 
 - What value is in the register ra just after the jalr to printf in main?
 - 0x0000000000000038, next line of assembly right after the jalr
@@ -13,17 +23,21 @@
 - Q: Run the following code.
 
     unsigned int i = 0x00646c72;
-    printf("H%x Wo%s", 57616, &i);    
+    printf("H%x Wo%s", 57616, &i);
 
 - What is the output?
 If the RISC-V were instead big-endian what would you set i to in order to yield the same output?
 Would you need to change 57616 to a different value?
-A: "He110 World"; 0x726c6400; no, 57616 is 110 in hex regardless of endianness. 
+
+- A: "He110 World"; 0x726c6400; no, 57616 is 110 in hex regardless of endianness.
+
+%x 表示使用十六进制的形式打印，将 57616 转为 16 进制就是 e11，对 &i 采用 %s 表示将 i 的地址开始的内容作为字符串打印，直到遇到一个 0 字符即 \0，也就是 ascii 0（不是我门输入的 0），
+
+如果采用大端序的话，
 
 - Q: In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
 
-    printf("x=%d y=%d", 3); 
-- 
+    printf("x=%d y=%d", 3);
+-
 A: A random value depending on what codes there are right before the call.Because printf tried to read more arguments than supplied.
-The second argument `3` is passed in a1, and the register for the third argument, a2, is not set to any specific value before the 
-call, and contains whatever there is before the call.
+The second argument `3` is passed in a1, and the register for the third argument, a2, is not set to any specific value before the
