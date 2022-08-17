@@ -14,6 +14,17 @@ void freerange(void *pa_start, void *pa_end);
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
+struct cow {
+  uint page_ref[(PHYSTOP - KERNBASE) / PGSIZE];
+  struct spinlock lock;
+} kcow;
+
+void incr_page_ref(uint64 pa) {
+  acquire(&kcow.lock);
+  ++kcow.page_ref[COW_INDEX(pa)];
+  release(&kcow.lock);
+}
+
 struct run {
   struct run *next;
 };
@@ -27,6 +38,7 @@ void
 kinit()
 {
   initlock(&kmem.lock, "kmem");
+  initlock(&kcow.lock, "kcow");
   freerange(end, (void*)PHYSTOP);
 }
 
@@ -50,6 +62,15 @@ kfree(void *pa)
 
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
+
+  acquire(&kcow.lock);
+  if (kcow.page_ref[COW_INDEX(pa)] > 0) {
+     --kcow.page_ref[COW_INDEX(pa)];
+     release(&kcow.lock);
+     return;
+  }
+  kcow.page_ref[COW_INDEX(pa)] = 0;
+  release(&kcow.lock);
 
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
@@ -77,6 +98,9 @@ kalloc(void)
   release(&kmem.lock);
 
   if(r)
+    acquire(&kcow.lock);
+    kcow.page_ref[COW_INDEX(r)] = 0;
     memset((char*)r, 5, PGSIZE); // fill with junk
+    release(&kcow.lock);
   return (void*)r;
 }
