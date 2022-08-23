@@ -19,3 +19,8 @@
 这里同时需要注意，宏中的变量尽可能的用括号括起来了，避免当出现表达式出问题
 
 4. 
+
+
+### Reference
+- https://blog.csdn.net/rocketeerLi/article/details/121774722
+- https://blog.miigon.net/posts/s081-lab6-copy-on-write-fork/
